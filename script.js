@@ -2,8 +2,14 @@
 const gradientCircle = document.getElementById('gradientCircle');
 const primaryColorButton = document.getElementById('primaryColorButton');
 const secondaryColorButton = document.getElementById('secondaryColorButton');
-const gradientCodeDisplay = document.getElementById('gradientCode');
+const gradientCodeToRightDisplay = document.getElementById('gradientToRightCode');
+const gradientCodeToLeftDisplay = document.getElementById('gradientToLeftCode');
+const gradientCodeToTopDisplay = document.getElementById('gradientToTopCode');
+const gradientCodeToBottomDisplay = document.getElementById('gradientToBottomCode');
 const customCursor = document.getElementById('customCursor');
+const toastContainer = document.getElementById('toastContainer');
+
+let currentDirection = "right";
 
 let colors = {
     primary: '',
@@ -23,10 +29,19 @@ const generateRandomHexColor = () => {
 };
 
 // Function to update gradient and display the code
-const updateGradient = () => {
-    const gradientStyle = `linear-gradient(to right, ${colors.primary}, ${colors.secondary})`;
-    gradientCircle.style.background=gradientStyle;
-    gradientCodeDisplay.textContent = `background-image: ${gradientStyle}`;
+const updateGradient = (direction = currentDirection) => {
+    const directions = ["right", "left", "top", "bottom"];
+
+    directions.forEach(dir => {
+        const gradientStyle = `linear-gradient(to ${dir}, ${colors.primary}, ${colors.secondary})`;
+        document.getElementById(`gradientTo${dir.charAt(0).toUpperCase() + dir.slice(1)}Code`).textContent = `background-image: ${gradientStyle};`;
+
+        if (dir === direction) {
+            gradientCircle.style.background = gradientStyle;
+            currentDirection = dir;
+        }
+    });
+
 };
 
 // Function to set random colors initially
@@ -45,17 +60,30 @@ const changeColor = (type) => {
     updateGradient();
 };
 
-// Event handler for copying the gradient code
-const copyToClipboard = () => {
-    navigator.clipboard.writeText(gradientCodeDisplay.textContent)
-        .then(() => alert('Gradient code copied to clipboard!'))
+// Event handler for copying and changing the directions of gradient code
+const copyToClipboard = (element, direction) => {
+    if (!element.textContent) return;
+    navigator.clipboard.writeText(element.textContent)
+        .then(() => {
+            updateGradient(direction);
+
+            setTimeout(() => {
+                toastContainer.style.opacity = "1";
+                setTimeout(() => toastContainer.style.opacity = "0", 2500);
+            }, 100);
+        })
         .catch((err) => console.error('Failed to copy text: ', err));
 };
 
 // Event listeners
 primaryColorButton.addEventListener('click', () => changeColor('primary'));
 secondaryColorButton.addEventListener('click', () => changeColor('secondary'));
-gradientCodeDisplay.addEventListener('click', copyToClipboard);
+
+// Event listeners for all gradient displays to change direction and copy text
+gradientCodeToRightDisplay.addEventListener('click', () => copyToClipboard(gradientCodeToRightDisplay, "right"));
+gradientCodeToLeftDisplay.addEventListener('click', () => copyToClipboard(gradientCodeToLeftDisplay, "left"));
+gradientCodeToTopDisplay.addEventListener('click', () => copyToClipboard(gradientCodeToTopDisplay, "top"));
+gradientCodeToBottomDisplay.addEventListener('click', () => copyToClipboard(gradientCodeToBottomDisplay, "bottom"));
 
 // Initialize colors on page load
 window.addEventListener('DOMContentLoaded', initializeRandomColors);
